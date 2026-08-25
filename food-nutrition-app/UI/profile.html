@@ -1,0 +1,29 @@
+<!doctype html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NutrifyU | Profile</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#07110d;color:#edf6f1;font-family:Arial,sans-serif}
+.sidebar{position:fixed;width:245px;height:100vh;background:#08140e;border-right:1px solid #183025;padding:25px 18px}
+.logo{font-size:23px;font-weight:bold;margin:0 10px 35px}.logo span{color:#39d98a}
+.nav{display:block;padding:13px;border-radius:10px;color:#829089;text-decoration:none;font-size:13px}.nav:hover,.active{background:#10251a;color:#39d98a}
+.main{margin-left:245px;padding:30px}.card{background:#0d1913;border:1px solid #183025;border-radius:17px;padding:22px}
+.head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}.identity{display:flex;align-items:center;gap:18px}
+.avatar{width:75px;height:75px;border-radius:20px;background:#39d98a;color:#06130c;display:grid;place-items:center;font-size:25px;font-weight:bold}
+.grid{display:grid;grid-template-columns:1.4fr .8fr;gap:18px}.form{display:grid;grid-template-columns:1fr 1fr;gap:15px}.full{grid-column:1/-1}
+label{display:block;font-size:11px;color:#9baaa2;margin-bottom:6px}input,select{width:100%;height:45px;background:#101e17;border:1px solid #20382b;border-radius:9px;color:white;padding:0 12px}
+button{cursor:pointer;border-radius:9px;padding:11px 16px;border:1px solid #264936;background:#102019;color:#39d98a}.mobile{display:none}.muted{color:#718078;font-size:11px}
+@media(max-width:1000px){.grid{grid-template-columns:1fr}}@media(max-width:800px){.sidebar{transform:translateX(-100%);transition:.3s;z-index:5}.sidebar.open{transform:translateX(0)}.main{margin-left:0;padding:18px}.mobile{display:block}.head{align-items:flex-start;flex-direction:column;gap:15px}}@media(max-width:550px){.form{grid-template-columns:1fr}.full{grid-column:auto}.main{padding:13px}}
+</style></head><body>
+<aside class="sidebar" id="side"><div class="logo">🥬 Nutrify<span>U</span></div>
+<a class="nav" href="dashboard.html">⌂ Dashboard</a><a class="nav" href="#">🥗 My Nutrition</a><a class="nav" href="#">📷 Food Scanner</a><a class="nav" href="#">🍽 Meal Planner</a><a class="nav active" href="profile.html">👤 Profile</a></aside>
+<main class="main"><button class="mobile" onclick="side.classList.toggle('open')">☰</button>
+<section class="head card"><div class="identity"><div class="avatar">R</div><div><h1>Roshani</h1><p class="muted">roshani@example.com</p><small style="color:#39d98a">NUTRIFYU MEMBER</small></div></div><button onclick="edit()">✎ Edit Profile</button></section>
+<section class="grid"><div class="card"><h2>Personal Information</h2><p class="muted">Keep your basic information up to date.</p>
+<form id="form"><div class="form"><div><label>First Name</label><input value="Roshani" disabled></div><div><label>Last Name</label><input value="Kumari" disabled></div>
+<div class="full"><label>Email</label><input value="roshani@example.com" disabled></div><div><label>Age</label><input value="23" disabled></div>
+<div><label>Gender</label><select disabled><option>Female</option><option>Male</option></select></div><div><label>Height</label><input value="164" disabled></div><div><label>Weight</label><input value="63" disabled></div></div>
+<button type="submit" style="margin-top:18px;background:#39d98a;color:#06130c">Save Changes</button></form></div>
+<div><div class="card"><h2>Profile Completion</h2><div style="font-size:50px;color:#39d98a;text-align:center;padding:25px">82%</div><p class="muted">Complete your profile for better insights.</p></div>
+<div class="card" style="margin-top:18px"><h2>Nutrition Preferences</h2><p>Diet: <b>Vegetarian</b></p><p>Calories: <b>2,000 kcal</b></p><p>Water: <b>2.5 L</b></p></div></div></section></main>
+<script>function edit(){document.querySelectorAll('#form input,#form select').forEach(x=>x.disabled=false)}document.getElementById('form').onsubmit=e=>{e.preventDefault();document.querySelectorAll('#form input,#form select').forEach(x=>x.disabled=true);alert('Profile saved successfully.')}</script>
+</body></html>

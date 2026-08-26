@@ -1,129 +1,465 @@
 import React from "react";
-import { ScrollView, View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-const green = "#39d98a";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
 
 export default function DashboardScreen({ navigation }) {
-  const navItems = [
-    ["⌂", "Dashboard", "Dashboard"],
-    ["🥗", "My Nutrition", null],
-    ["📷", "Food Scanner", null],
-    ["🍽", "Meal Planner", null],
-    ["🎯", "My Goals", null],
-    ["📊", "Reports", null],
-    ["👤", "Profile", "Profile"],
-  ];
-
   return (
-    <View style={styles.root}>
-      <ScrollView horizontal={false} contentContainerStyle={styles.container}>
-        <View style={styles.sidebar}>
-          <Text style={styles.logo}>🥬 Nutrify<Text style={{color: green}}>U</Text></Text>
-          {navItems.map(([icon, label, route]) => (
-            <TouchableOpacity
-              key={label}
-              style={[styles.nav, label === "Dashboard" && styles.activeNav]}
-              onPress={() => route && navigation.navigate(route)}
-            >
-              <Text style={[styles.navText, label === "Dashboard" && styles.activeText]}>
-                {icon}  {label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-          <View style={styles.policyLinks}>
-            <TouchableOpacity onPress={() => navigation.navigate("Privacy")}>
-              <Text style={styles.smallLink}>Privacy Policy</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate("Terms")}>
-              <Text style={styles.smallLink}>Terms of Service</Text>
-            </TouchableOpacity>
+    <SafeAreaView style={styles.container}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.greeting}>Good Morning 👋</Text>
+            <Text style={styles.userName}>Welcome to NutrifyU</Text>
           </View>
+
+          <TouchableOpacity
+            style={styles.profileButton}
+            onPress={() => navigation.navigate("Profile")}
+          >
+            <Text style={styles.profileIcon}>👤</Text>
+          </TouchableOpacity>
         </View>
 
-        <View style={styles.main}>
-          <Text style={styles.overview}>OVERVIEW / DASHBOARD</Text>
-          <Text style={styles.title}>Good evening, <Text style={{color: green}}>Sarthak</Text> 👋</Text>
-          <Text style={styles.muted}>Here's your nutrition overview for today.</Text>
+        {/* Daily Progress */}
+        <View style={styles.progressCard}>
+          <Text style={styles.cardTitle}>Today's Progress</Text>
 
-          <View style={styles.stats}>
-            {[
-              ["1,560 kcal", "Calories consumed"],
-              ["82g", "Protein intake"],
-              ["2.1L", "Water intake"],
-              ["6", "Healthy choices"],
-            ].map(([value, label]) => (
-              <View style={styles.card} key={label}>
-                <Text style={styles.value}>{value}</Text>
-                <Text style={styles.muted}>{label}</Text>
-              </View>
-            ))}
-          </View>
+          <View style={styles.progressRow}>
+            <View style={styles.progressItem}>
+              <Text style={styles.progressValue}>1,250</Text>
+              <Text style={styles.progressLabel}>Calories</Text>
+              <Text style={styles.progressTarget}>/ 2,000 kcal</Text>
+            </View>
 
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Weekly Calories</Text>
-            <View style={styles.bars}>
-              {[62,75,55,82,68,91,73].map((height, i) => (
-                <View style={styles.barColumn} key={i}>
-                  <View style={[styles.bar, {height: height * 1.7}]} />
-                  <Text style={styles.muted}>{["Mon","Tue","Wed","Thu","Fri","Sat","Sun"][i]}</Text>
-                </View>
-              ))}
+            <View style={styles.divider} />
+
+            <View style={styles.progressItem}>
+              <Text style={styles.progressValue}>65g</Text>
+              <Text style={styles.progressLabel}>Protein</Text>
+              <Text style={styles.progressTarget}>/ 120g</Text>
+            </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.progressItem}>
+              <Text style={styles.progressValue}>4</Text>
+              <Text style={styles.progressLabel}>Water</Text>
+              <Text style={styles.progressTarget}>/ 8 glasses</Text>
             </View>
           </View>
-
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Daily Goal</Text>
-            <Text style={styles.goal}>78%</Text>
-            <Text style={styles.muted}>Overall nutrition progress</Text>
-          </View>
-
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Today's Meals</Text>
-            {[
-              ["🍳", "Breakfast", "Oatmeal · Banana · Almonds", "420 kcal"],
-              ["🥗", "Lunch", "Rice · Dal · Vegetables", "560 kcal"],
-              ["🍎", "Evening Snack", "Apple · Greek Yogurt", "180 kcal"],
-            ].map(([icon, meal, desc, kcal]) => (
-              <View style={styles.meal} key={meal}>
-                <Text style={{fontSize: 22}}>{icon}</Text>
-                <View style={{flex: 1}}>
-                  <Text style={styles.mealTitle}>{meal}</Text>
-                  <Text style={styles.muted}>{desc}</Text>
-                </View>
-                <Text style={styles.mealKcal}>{kcal}</Text>
-              </View>
-            ))}
-          </View>
         </View>
+
+        {/* Quick Actions */}
+        <Text style={styles.sectionTitle}>Quick Actions</Text>
+
+        <View style={styles.actionGrid}>
+          <TouchableOpacity
+            style={styles.actionCard}
+            onPress={() => navigation.navigate("AddFood")}
+          >
+            <Text style={styles.actionIcon}>🍎</Text>
+            <Text style={styles.actionTitle}>Add Food</Text>
+            <Text style={styles.actionDescription}>
+              Track your meal
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionCard}
+            onPress={() => navigation.navigate("FoodScanner")}
+          >
+            <Text style={styles.actionIcon}>📷</Text>
+            <Text style={styles.actionTitle}>Scan Food</Text>
+            <Text style={styles.actionDescription}>
+              Identify food
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionCard}
+            onPress={() => navigation.navigate("MealPlanner")}
+          >
+            <Text style={styles.actionIcon}>🍽️</Text>
+            <Text style={styles.actionTitle}>Meal Plan</Text>
+            <Text style={styles.actionDescription}>
+              Plan your meals
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionCard}
+            onPress={() => navigation.navigate("Goals")}
+          >
+            <Text style={styles.actionIcon}>🎯</Text>
+            <Text style={styles.actionTitle}>My Goals</Text>
+            <Text style={styles.actionDescription}>
+              Track your goals
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Today's Meals */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Today's Meals</Text>
+
+          <TouchableOpacity
+            onPress={() => navigation.navigate("AddFood")}
+          >
+            <Text style={styles.viewAll}>Add</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.mealCard}>
+          <View style={styles.mealIconContainer}>
+            <Text style={styles.mealIcon}>🥣</Text>
+          </View>
+
+          <View style={styles.mealInfo}>
+            <Text style={styles.mealName}>Breakfast</Text>
+            <Text style={styles.mealDetails}>
+              Oatmeal • Banana • Milk
+            </Text>
+          </View>
+
+          <Text style={styles.mealCalories}>350 kcal</Text>
+        </View>
+
+        <View style={styles.mealCard}>
+          <View style={styles.mealIconContainer}>
+            <Text style={styles.mealIcon}>🥗</Text>
+          </View>
+
+          <View style={styles.mealInfo}>
+            <Text style={styles.mealName}>Lunch</Text>
+            <Text style={styles.mealDetails}>
+              Rice • Chicken • Vegetables
+            </Text>
+          </View>
+
+          <Text style={styles.mealCalories}>520 kcal</Text>
+        </View>
+
+        {/* Progress Button */}
+        <TouchableOpacity
+          style={styles.progressButton}
+          onPress={() => navigation.navigate("Progress")}
+        >
+          <View>
+            <Text style={styles.progressButtonTitle}>
+              View Your Progress
+            </Text>
+            <Text style={styles.progressButtonSubtitle}>
+              Check your nutrition journey
+            </Text>
+          </View>
+
+          <Text style={styles.arrow}>›</Text>
+        </TouchableOpacity>
+
       </ScrollView>
-    </View>
+
+      {/* Bottom Navigation */}
+      <View style={styles.bottomNav}>
+        <TouchableOpacity style={styles.navItem}>
+          <Text style={styles.navIcon}>🏠</Text>
+          <Text style={styles.activeNavText}>Home</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => navigation.navigate("Progress")}
+        >
+          <Text style={styles.navIcon}>📊</Text>
+          <Text style={styles.navText}>Progress</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => navigation.navigate("Goals")}
+        >
+          <Text style={styles.navIcon}>🎯</Text>
+          <Text style={styles.navText}>Goals</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => navigation.navigate("Profile")}
+        >
+          <Text style={styles.navIcon}>👤</Text>
+          <Text style={styles.navText}>Profile</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  root:{flex:1,backgroundColor:"#07110d"},
-  container:{paddingBottom:30},
-  sidebar:{backgroundColor:"#08140e",padding:24,borderBottomWidth:1,borderColor:"#183025"},
-  logo:{fontSize:23,fontWeight:"700",color:"#edf6f1",marginBottom:20},
-  nav:{padding:12,borderRadius:10,marginBottom:5},
-  activeNav:{backgroundColor:"#10251a"},
-  navText:{color:"#829089",fontSize:14},
-  activeText:{color:green},
-  policyLinks:{flexDirection:"row",gap:20,marginTop:15},
-  smallLink:{color:"#718078",fontSize:11},
-  main:{padding:20},
-  overview:{color:"#718078",fontSize:11,marginBottom:25},
-  title:{fontSize:28,fontWeight:"700",color:"#edf6f1"},
-  muted:{color:"#718078",fontSize:11,lineHeight:18},
-  stats:{gap:12,marginVertical:20},
-  card:{backgroundColor:"#0d1913",borderWidth:1,borderColor:"#183025",borderRadius:17,padding:18,marginBottom:15},
-  value:{fontSize:25,fontWeight:"700",color:"#edf6f1",marginBottom:6},
-  cardTitle:{fontSize:17,fontWeight:"700",color:"#edf6f1",marginBottom:15},
-  bars:{height:190,flexDirection:"row",alignItems:"flex-end",justifyContent:"space-between"},
-  barColumn:{alignItems:"center",justifyContent:"flex-end",flex:1},
-  bar:{width:18,backgroundColor:green,borderRadius:6,marginBottom:7},
-  goal:{fontSize:55,color:green,textAlign:"center",paddingVertical:25},
-  meal:{flexDirection:"row",alignItems:"center",gap:12,padding:12,backgroundColor:"#101e17",borderRadius:10,marginBottom:9},
-  mealTitle:{color:"#edf6f1",fontWeight:"700"},
-  mealKcal:{color:"#edf6f1",fontSize:12},
+  container: {
+    flex: 1,
+    backgroundColor: "#F7FBF5",
+  },
+
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 15,
+    paddingBottom: 100,
+  },
+
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 22,
+  },
+
+  greeting: {
+    fontSize: 15,
+    color: "#6B7280",
+    marginBottom: 4,
+  },
+
+  userName: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: "#1F2937",
+  },
+
+  profileButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#E8F5E9",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  profileIcon: {
+    fontSize: 22,
+  },
+
+  progressCard: {
+    backgroundColor: "#4CAF50",
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 28,
+  },
+
+  cardTitle: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 20,
+  },
+
+  progressRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+
+  progressItem: {
+    flex: 1,
+    alignItems: "center",
+  },
+
+  progressValue: {
+    color: "#FFFFFF",
+    fontSize: 20,
+    fontWeight: "800",
+    marginBottom: 4,
+  },
+
+  progressLabel: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+
+  progressTarget: {
+    color: "#DFF3E1",
+    fontSize: 10,
+    marginTop: 2,
+  },
+
+  divider: {
+    width: 1,
+    height: 45,
+    backgroundColor: "#FFFFFF",
+    opacity: 0.3,
+  },
+
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#1F2937",
+    marginBottom: 15,
+  },
+
+  viewAll: {
+    color: "#4CAF50",
+    fontSize: 14,
+    fontWeight: "700",
+    marginBottom: 15,
+  },
+
+  actionGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    marginBottom: 25,
+  },
+
+  actionCard: {
+    width: "48%",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+
+  actionIcon: {
+    fontSize: 28,
+    marginBottom: 12,
+  },
+
+  actionTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#1F2937",
+    marginBottom: 4,
+  },
+
+  actionDescription: {
+    fontSize: 12,
+    color: "#6B7280",
+  },
+
+  mealCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 15,
+    padding: 13,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+
+  mealIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: "#F1F8E9",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+
+  mealIcon: {
+    fontSize: 24,
+  },
+
+  mealInfo: {
+    flex: 1,
+  },
+
+  mealName: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#1F2937",
+    marginBottom: 3,
+  },
+
+  mealDetails: {
+    fontSize: 11,
+    color: "#6B7280",
+  },
+
+  mealCalories: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#4CAF50",
+  },
+
+  progressButton: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#E8F5E9",
+    borderRadius: 16,
+    padding: 18,
+    marginTop: 10,
+  },
+
+  progressButtonTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#2E7D32",
+    marginBottom: 4,
+  },
+
+  progressButtonSubtitle: {
+    fontSize: 12,
+    color: "#6B7280",
+  },
+
+  arrow: {
+    fontSize: 30,
+    color: "#4CAF50",
+  },
+
+  bottomNav: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 75,
+    backgroundColor: "#FFFFFF",
+    borderTopWidth: 1,
+    borderTopColor: "#E5E7EB",
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+  },
+
+  navItem: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: "25%",
+  },
+
+  navIcon: {
+    fontSize: 19,
+    marginBottom: 4,
+  },
+
+  navText: {
+    fontSize: 11,
+    color: "#6B7280",
+  },
+
+  activeNavText: {
+    fontSize: 11,
+    color: "#4CAF50",
+    fontWeight: "700",
+  },
 });

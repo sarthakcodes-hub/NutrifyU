@@ -106,3 +106,4 @@ async def analyze_food(file: UploadFile = File(...)):
     except Exception as e:
         print("Unexpected Error:", e)
         raise HTTPException(status_code=500, detail=f"Unexpected Error: {str(e)}")
+

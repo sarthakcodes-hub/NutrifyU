@@ -1,98 +1,167 @@
 import React, { useState } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
+  SafeAreaView,
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   Alert,
 } from "react-native";
 
+import { auth, db } from "../services/firebase";
+
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+} from "firebase/firestore";
+
 export default function AddFoodScreen({ navigation }) {
+  const [mealType, setMealType] = useState("Breakfast");
+
   const [foodName, setFoodName] = useState("");
-  const [quantity, setQuantity] = useState("");
   const [calories, setCalories] = useState("");
   const [protein, setProtein] = useState("");
   const [carbs, setCarbs] = useState("");
   const [fat, setFat] = useState("");
-  const [mealType, setMealType] = useState("Breakfast");
 
-  const handleSaveFood = () => {
-    if (!foodName.trim()) {
-      Alert.alert("Missing Information", "Please enter the food name.");
-      return;
+  const [saving, setSaving] = useState(false);
+
+  const handleAddMeal = async () => {
+    try {
+      const user = auth.currentUser;
+
+      if (!user) {
+        Alert.alert(
+          "Login Required",
+          "Please login before adding a meal."
+        );
+        return;
+      }
+
+      if (!foodName.trim()) {
+        Alert.alert(
+          "Missing Food",
+          "Please enter the food name."
+        );
+        return;
+      }
+
+      if (!calories.trim()) {
+        Alert.alert(
+          "Missing Calories",
+          "Please enter the calories."
+        );
+        return;
+      }
+
+      setSaving(true);
+
+      await addDoc(collection(db, "meals"), {
+        uid: user.uid,
+
+        mealType: mealType,
+
+        foodName: foodName.trim(),
+
+        calories: Number(calories) || 0,
+        protein: Number(protein) || 0,
+        carbs: Number(carbs) || 0,
+        fat: Number(fat) || 0,
+
+        createdAt: serverTimestamp(),
+      });
+
+      Alert.alert(
+        "Success",
+        "Meal added successfully!",
+        [
+          {
+            text: "OK",
+            onPress: () => navigation.goBack(),
+          },
+        ]
+      );
+    } catch (error) {
+      console.log("Add meal error:", error);
+
+      Alert.alert(
+        "Error",
+        "Unable to add meal. Please try again."
+      );
+    } finally {
+      setSaving(false);
     }
-
-    if (!quantity.trim()) {
-      Alert.alert("Missing Information", "Please enter the quantity.");
-      return;
-    }
-
-    if (!calories.trim()) {
-      Alert.alert("Missing Information", "Please enter the calories.");
-      return;
-    }
-
-    const foodData = {
-      foodName: foodName.trim(),
-      quantity: quantity.trim(),
-      calories: Number(calories),
-      protein: Number(protein) || 0,
-      carbs: Number(carbs) || 0,
-      fat: Number(fat) || 0,
-      mealType,
-    };
-
-    console.log("Food Data:", foodData);
-
-    Alert.alert(
-      "Food Added",
-      `${foodName} has been added successfully.`,
-      [
-        {
-          text: "OK",
-          onPress: () => navigation.goBack(),
-        },
-      ]
-    );
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
-        showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-          >
-            <Text style={styles.backText}>‹</Text>
-          </TouchableOpacity>
 
-          <Text style={styles.headerTitle}>Add Food</Text>
+        {/* HEADER */}
 
-          <View style={styles.headerSpacer} />
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <Text style={styles.backText}>‹ Back</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.title}>
+          Add Meal
+        </Text>
+
+        <Text style={styles.subtitle}>
+          Add your meal details to track your nutrition.
+        </Text>
+
+
+        {/* MEAL TYPE */}
+
+        <Text style={styles.label}>
+          Meal Type
+        </Text>
+
+        <View style={styles.mealTypes}>
+
+          {["Breakfast", "Lunch", "Dinner", "Snack"].map(
+            (type) => (
+              <TouchableOpacity
+                key={type}
+                style={[
+                  styles.mealTypeButton,
+                  mealType === type &&
+                    styles.selectedMealType,
+                ]}
+                onPress={() => setMealType(type)}
+              >
+                <Text
+                  style={[
+                    styles.mealTypeText,
+                    mealType === type &&
+                      styles.selectedMealTypeText,
+                  ]}
+                >
+                  {type}
+                </Text>
+              </TouchableOpacity>
+            )
+          )}
+
         </View>
 
-        {/* Intro */}
-        <View style={styles.intro}>
-          <Text style={styles.title}>Track Your Food</Text>
 
-          <Text style={styles.subtitle}>
-            Add nutritional information about your meal.
-          </Text>
-        </View>
+        {/* FOOD NAME */}
 
-        {/* Food Name */}
-        <Text style={styles.label}>Food Name *</Text>
+        <Text style={styles.label}>
+          Food Name
+        </Text>
 
         <TextInput
           style={styles.input}
@@ -102,270 +171,195 @@ export default function AddFoodScreen({ navigation }) {
           onChangeText={setFoodName}
         />
 
-        {/* Quantity */}
-        <Text style={styles.label}>Quantity *</Text>
+
+        {/* CALORIES */}
+
+        <Text style={styles.label}>
+          Calories (kcal)
+        </Text>
 
         <TextInput
           style={styles.input}
-          placeholder="e.g. 1 bowl, 200g"
+          placeholder="e.g. 450"
           placeholderTextColor="#9CA3AF"
-          value={quantity}
-          onChangeText={setQuantity}
+          keyboardType="numeric"
+          value={calories}
+          onChangeText={setCalories}
         />
 
-        {/* Meal Type */}
-        <Text style={styles.label}>Meal Type</Text>
 
-        <View style={styles.mealTypeContainer}>
-          {["Breakfast", "Lunch", "Dinner", "Snack"].map((type) => (
-            <TouchableOpacity
-              key={type}
-              style={[
-                styles.mealTypeButton,
-                mealType === type && styles.mealTypeButtonActive,
-              ]}
-              onPress={() => setMealType(type)}
-            >
-              <Text
-                style={[
-                  styles.mealTypeText,
-                  mealType === type && styles.mealTypeTextActive,
-                ]}
-              >
-                {type}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        {/* PROTEIN */}
 
-        {/* Nutrition */}
-        <Text style={styles.sectionTitle}>Nutrition Information</Text>
+        <Text style={styles.label}>
+          Protein (g)
+        </Text>
 
-        <View style={styles.nutritionCard}>
-          {/* Calories */}
-          <Text style={styles.label}>Calories (kcal) *</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="e.g. 25"
+          placeholderTextColor="#9CA3AF"
+          keyboardType="numeric"
+          value={protein}
+          onChangeText={setProtein}
+        />
 
-          <TextInput
-            style={styles.input}
-            placeholder="e.g. 450"
-            placeholderTextColor="#9CA3AF"
-            keyboardType="numeric"
-            value={calories}
-            onChangeText={setCalories}
-          />
 
-          {/* Protein */}
-          <Text style={styles.label}>Protein (g)</Text>
+        {/* CARBS */}
 
-          <TextInput
-            style={styles.input}
-            placeholder="e.g. 30"
-            placeholderTextColor="#9CA3AF"
-            keyboardType="numeric"
-            value={protein}
-            onChangeText={setProtein}
-          />
+        <Text style={styles.label}>
+          Carbs (g)
+        </Text>
 
-          {/* Carbs */}
-          <Text style={styles.label}>Carbohydrates (g)</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="e.g. 50"
+          placeholderTextColor="#9CA3AF"
+          keyboardType="numeric"
+          value={carbs}
+          onChangeText={setCarbs}
+        />
 
-          <TextInput
-            style={styles.input}
-            placeholder="e.g. 50"
-            placeholderTextColor="#9CA3AF"
-            keyboardType="numeric"
-            value={carbs}
-            onChangeText={setCarbs}
-          />
 
-          {/* Fat */}
-          <Text style={styles.label}>Fat (g)</Text>
+        {/* FAT */}
 
-          <TextInput
-            style={styles.input}
-            placeholder="e.g. 15"
-            placeholderTextColor="#9CA3AF"
-            keyboardType="numeric"
-            value={fat}
-            onChangeText={setFat}
-          />
-        </View>
+        <Text style={styles.label}>
+          Fat (g)
+        </Text>
 
-        {/* Save */}
+        <TextInput
+          style={styles.input}
+          placeholder="e.g. 12"
+          placeholderTextColor="#9CA3AF"
+          keyboardType="numeric"
+          value={fat}
+          onChangeText={setFat}
+        />
+
+
+        {/* SAVE */}
+
         <TouchableOpacity
-          style={styles.saveButton}
-          onPress={handleSaveFood}
+          style={[
+            styles.saveButton,
+            saving && styles.disabledButton,
+          ]}
+          onPress={handleAddMeal}
+          disabled={saving}
         >
-          <Text style={styles.saveButtonText}>Save Food</Text>
+          <Text style={styles.saveText}>
+            {saving ? "Saving..." : "Add Meal"}
+          </Text>
         </TouchableOpacity>
 
-        {/* Cancel */}
-        <TouchableOpacity
-          style={styles.cancelButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Text style={styles.cancelButtonText}>Cancel</Text>
-        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
+
 const styles = StyleSheet.create({
+
   container: {
     flex: 1,
     backgroundColor: "#F7FBF5",
   },
 
   content: {
-    paddingHorizontal: 20,
+    padding: 20,
     paddingBottom: 40,
   },
 
-  header: {
-    height: 60,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-
   backButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: "#E8F5E9",
-    justifyContent: "center",
-    alignItems: "center",
+    marginBottom: 20,
   },
 
   backText: {
-    fontSize: 32,
-    lineHeight: 34,
+    fontSize: 16,
+    fontWeight: "600",
     color: "#4CAF50",
   },
 
-  headerTitle: {
-    fontSize: 19,
-    fontWeight: "800",
-    color: "#1F2937",
-  },
-
-  headerSpacer: {
-    width: 42,
-  },
-
-  intro: {
-    marginTop: 18,
-    marginBottom: 25,
-  },
-
   title: {
-    fontSize: 27,
+    fontSize: 30,
     fontWeight: "800",
     color: "#1F2937",
-    marginBottom: 6,
+    marginBottom: 8,
   },
 
   subtitle: {
     fontSize: 14,
     color: "#6B7280",
     lineHeight: 21,
-  },
-
-  label: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#374151",
-    marginBottom: 8,
-    marginTop: 6,
-  },
-
-  input: {
-    height: 52,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    paddingHorizontal: 15,
-    fontSize: 14,
-    color: "#1F2937",
-    marginBottom: 16,
-  },
-
-  mealTypeContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
     marginBottom: 25,
   },
 
-  mealTypeButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 11,
-    borderRadius: 20,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    marginRight: 8,
+  label: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#374151",
     marginBottom: 8,
+    marginTop: 12,
   },
 
-  mealTypeButtonActive: {
+  mealTypes: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 10,
+  },
+
+  mealTypeButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    backgroundColor: "#FFFFFF",
+  },
+
+  selectedMealType: {
     backgroundColor: "#4CAF50",
     borderColor: "#4CAF50",
   },
 
   mealTypeText: {
+    color: "#374151",
     fontSize: 13,
     fontWeight: "600",
-    color: "#6B7280",
   },
 
-  mealTypeTextActive: {
+  selectedMealTypeText: {
     color: "#FFFFFF",
   },
 
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#1F2937",
-    marginBottom: 15,
-  },
-
-  nutritionCard: {
+  input: {
+    height: 52,
     backgroundColor: "#FFFFFF",
-    borderRadius: 18,
-    padding: 16,
     borderWidth: 1,
     borderColor: "#E5E7EB",
-    marginBottom: 20,
+    borderRadius: 11,
+    paddingHorizontal: 15,
+    fontSize: 15,
+    color: "#1F2937",
   },
 
   saveButton: {
     height: 55,
-    borderRadius: 13,
     backgroundColor: "#4CAF50",
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 5,
+    marginTop: 25,
   },
 
-  saveButtonText: {
+  disabledButton: {
+    opacity: 0.6,
+  },
+
+  saveText: {
     color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: "800",
-  },
-
-  cancelButton: {
-    height: 50,
-    borderRadius: 13,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 8,
-  },
-
-  cancelButtonText: {
-    color: "#6B7280",
-    fontSize: 15,
     fontWeight: "700",
   },
+
 });

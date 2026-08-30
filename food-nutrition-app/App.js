@@ -14,6 +14,10 @@ import ProfileScreen from "./UI/ProfileScreen";
 import PrivacyScreen from "./UI/PrivacyScreen";
 import TermsScreen from "./UI/TermsScreen";
 import AdminDashboardScreen from "./UI/AdminDashboardScreen";
+import AddFoodScreen from "./UI/AddFoodScreen";
+import NutritionScreen from "./UI/NutritionScreen";
+import FoodScannerScreen from "./UI/FoodScannerScreen";
+import GoalsScreen from "./UI/GoalsScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -49,6 +53,14 @@ export default function App() {
             <Stack.Screen name="Privacy" component={PrivacyScreen} />
 
             <Stack.Screen name="Terms" component={TermsScreen} />
+
+            <Stack.Screen name="AddFood" component={AddFoodScreen} />
+
+            <Stack.Screen name="FoodScanner" component={FoodScannerScreen} />
+
+            <Stack.Screen name="Nutrition" component={NutritionScreen} />
+
+            <Stack.Screen name="Goals" component={GoalsScreen} />
 
             <Stack.Screen
               name="AdminDashboard"

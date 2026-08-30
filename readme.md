@@ -19,6 +19,11 @@ Run:
 ```powershell
 uvicorn main:app --reload --host 0.0.0.0
 ```
+or 
+```powershell
+python -m uvicorn main:app --reload --host 0.0.0.0
+```
+
 
 The backend will run using Uvicorn with:
 

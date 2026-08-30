@@ -13,6 +13,7 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Alert,
   ScrollView,
 } from "react-native";
 
@@ -80,29 +81,16 @@ export default function RegisterScreen({ navigation }) {
         ]
       );
     } catch (error) {
-      console.log("Registration error:", error);
-  
-      if (error.code === "auth/email-already-in-use") {
-        Alert.alert(
-          "Account Exists",
-          "An account already exists with this email."
-        );
-      } else if (error.code === "auth/invalid-email") {
-        Alert.alert(
-          "Invalid Email",
-          "Please enter a valid email address."
-        );
-      } else if (error.code === "auth/weak-password") {
-        Alert.alert(
-          "Weak Password",
-          "Please use a stronger password."
-        );
-      } else {
-        Alert.alert(
-          "Registration Failed",
-          error.message
-        );
-      }
+      console.log("========== REGISTRATION ERROR ==========");
+      console.log("Error code:", error.code);
+      console.log("Error message:", error.message);
+      console.log("Full error:", error);
+      console.log("========================================");
+    
+      Alert.alert(
+        "Registration Failed",
+        `${error.code}\n\n${error.message}`
+      );
     }
   };
 

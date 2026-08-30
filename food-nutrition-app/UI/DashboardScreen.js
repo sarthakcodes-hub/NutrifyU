@@ -1,5 +1,17 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { auth, db } from "../services/firebase";
+import { useIsFocused } from "@react-navigation/native";
+
+import {
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  orderBy,
+} from "firebase/firestore";
 
 import {
   View,
@@ -10,6 +22,152 @@ import {
 } from "react-native";
 
 export default function DashboardScreen({ navigation }) {
+  const isFocused = useIsFocused();
+  const [userName, setUserName] = useState("");
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [meals, setMeals] = useState([]);
+  const [mealsLoading, setMealsLoading] = useState(true);
+  const [nutritionTotals, setNutritionTotals] = useState({
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0,
+  });
+  const [goals, setGoals] = useState({
+    calories: 0,
+    water: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0,
+  });
+
+  useEffect(() => {
+    loadGoals();
+  }, []);
+  const loadGoals = async () => {
+    try {
+      const user = auth.currentUser;
+  
+      if (!user) {
+        console.log("No logged-in user found");
+        return;
+      }
+  
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+  
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+  
+        // console.log("User data:", data);
+  
+        setGoals({
+          calories: Number(data.dailyCalorieGoal) || 0,
+          water: Number(data.dailyWaterGoal) || 0,
+          protein: Number(data.dailyProteinGoal) || 0,
+          carbs: Number(data.dailyCarbsGoal) || 0,
+          fat: Number(data.dailyFatGoal) || 0,
+        });
+      } else {
+        console.log("User document does not exist");
+      }
+    } catch (error) {
+      console.log("Goal loading error:", error);
+    }
+  };
+
+  
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      try {
+        const user = auth.currentUser;
+
+        if (!user) {
+          console.log("No logged-in user");
+          setLoading(false);
+          return;
+        }
+
+        const userRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+          const data = userSnap.data();
+
+          setProfile(data);
+          setUserName(data.name || user.displayName || "User");
+        } else {
+          setUserName(user.displayName || "User");
+        }
+      } catch (error) {
+        console.log("Dashboard profile error:", error);
+        setUserName("User");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUserProfile();
+  }, []);
+
+  useEffect(() => {
+    const loadMeals = async () => {
+      try {
+        const user = auth.currentUser;
+
+        console.log("CURRENT USER:", user?.uid);
+
+        if (!user) {
+          console.log("No logged-in user found");
+          setMeals([]);
+          return;
+        }
+
+        const mealsRef = collection(db, "meals");
+
+        const mealsQuery = query(mealsRef, where("uid", "==", user.uid));
+
+        const snapshot = await getDocs(mealsQuery);
+
+        // console.log("MEALS FOUND:", snapshot.size);
+
+        const mealList = snapshot.docs.map((mealDoc) => {
+          // console.log("MEAL DATA:", mealDoc.data());
+
+          return {
+            id: mealDoc.id,
+            ...mealDoc.data(),
+          };
+        });
+
+        setMeals(mealList);
+        const totals = mealList.reduce(
+          (total, meal) => ({
+            calories: total.calories + Number(meal.calories || 0),
+            protein: total.protein + Number(meal.protein || 0),
+            carbs: total.carbs + Number(meal.carbs || 0),
+            fat: total.fat + Number(meal.fat || 0),
+          }),
+          {
+            calories: 0,
+            protein: 0,
+            carbs: 0,
+            fat: 0,
+          }
+        );
+        
+        setNutritionTotals(totals);
+      } catch (error) {
+        console.log("MEALS LOAD ERROR:", error);
+      } finally {
+        setMealsLoading(false);
+      }
+    };
+
+    loadMeals();
+  }, [isFocused]);
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -19,8 +177,10 @@ export default function DashboardScreen({ navigation }) {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Good Morning 👋</Text>
-            <Text style={styles.userName}>Welcome to NutrifyU</Text>
+            <Text style={styles.greeting}>Hey👋</Text>
+            <Text style={styles.userName}>
+              {loading ? "Loading..." : `Welcome, ${userName}`}
+            </Text>{" "}
           </View>
 
           <TouchableOpacity
@@ -37,25 +197,32 @@ export default function DashboardScreen({ navigation }) {
 
           <View style={styles.progressRow}>
             <View style={styles.progressItem}>
-              <Text style={styles.progressValue}>1,250</Text>
+                <Text style={styles.progressValue}>{nutritionTotals.calories}</Text>
               <Text style={styles.progressLabel}>Calories</Text>
-              <Text style={styles.progressTarget}>/ 2,000 kcal</Text>
+              <Text style={styles.progressTarget}>/ {goals.calories || 0} cal</Text>
             </View>
 
             <View style={styles.divider} />
 
             <View style={styles.progressItem}>
-              <Text style={styles.progressValue}>65g</Text>
+              <Text style={styles.progressValue}>{nutritionTotals.protein}g</Text>
               <Text style={styles.progressLabel}>Protein</Text>
-              <Text style={styles.progressTarget}>/ 120g</Text>
+              <Text style={styles.progressTarget}>/ {goals.protein || 0}g</Text>
             </View>
 
             <View style={styles.divider} />
 
             <View style={styles.progressItem}>
-              <Text style={styles.progressValue}>4</Text>
-              <Text style={styles.progressLabel}>Water</Text>
-              <Text style={styles.progressTarget}>/ 8 glasses</Text>
+              <Text style={styles.progressValue}>{nutritionTotals.carbs}</Text>
+              <Text style={styles.progressLabel}>Carbs</Text>
+              <Text style={styles.progressTarget}>/ {goals.carbs || 0}g</Text>
+            </View>
+            <View style={styles.divider} />
+
+            <View style={styles.progressItem}>
+              <Text style={styles.progressValue}>{nutritionTotals.fat}g</Text>
+              <Text style={styles.progressLabel}>Fat</Text>
+              <Text style={styles.progressTarget}>/ {goals.fat || 0}g</Text>
             </View>
           </View>
         </View>
@@ -70,9 +237,7 @@ export default function DashboardScreen({ navigation }) {
           >
             <Text style={styles.actionIcon}>🍎</Text>
             <Text style={styles.actionTitle}>Add Food</Text>
-            <Text style={styles.actionDescription}>
-              Track your meal
-            </Text>
+            <Text style={styles.actionDescription}>Track your meal</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -81,74 +246,84 @@ export default function DashboardScreen({ navigation }) {
           >
             <Text style={styles.actionIcon}>📷</Text>
             <Text style={styles.actionTitle}>Scan Food</Text>
-            <Text style={styles.actionDescription}>
-              Identify food
-            </Text>
+            <Text style={styles.actionDescription}>Identify food</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.actionCard}
             onPress={() => navigation.navigate("MealPlanner")}
           >
             <Text style={styles.actionIcon}>🍽️</Text>
             <Text style={styles.actionTitle}>Meal Plan</Text>
-            <Text style={styles.actionDescription}>
-              Plan your meals
-            </Text>
+            <Text style={styles.actionDescription}>Plan your meals</Text>
           </TouchableOpacity>
-
           <TouchableOpacity
             style={styles.actionCard}
             onPress={() => navigation.navigate("Goals")}
           >
             <Text style={styles.actionIcon}>🎯</Text>
             <Text style={styles.actionTitle}>My Goals</Text>
-            <Text style={styles.actionDescription}>
-              Track your goals
-            </Text>
-          </TouchableOpacity>
+            <Text style={styles.actionDescription}>Track your goals</Text>
+          </TouchableOpacity> */}
         </View>
 
         {/* Today's Meals */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Today's Meals</Text>
 
-          <TouchableOpacity
-            onPress={() => navigation.navigate("AddFood")}
-          >
+          <TouchableOpacity onPress={() => navigation.navigate("AddFood")}>
             <Text style={styles.viewAll}>Add</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.mealCard}>
-          <View style={styles.mealIconContainer}>
-            <Text style={styles.mealIcon}>🥣</Text>
-          </View>
+        {mealsLoading ? (
+          <Text style={styles.emptyText}>Loading meals...</Text>
+        ) : meals.length === 0 ? (
+          <View style={styles.emptyMeal}>
+            <Text style={styles.emptyMealIcon}>🍽️</Text>
 
-          <View style={styles.mealInfo}>
-            <Text style={styles.mealName}>Breakfast</Text>
-            <Text style={styles.mealDetails}>
-              Oatmeal • Banana • Milk
+            <Text style={styles.emptyMealTitle}>No meals added yet</Text>
+
+            <Text style={styles.emptyMealText}>
+              Add your first meal to start tracking your nutrition.
             </Text>
+
+            <TouchableOpacity
+              style={styles.addMealButton}
+              onPress={() => navigation.navigate("AddFood")}
+            >
+              <Text style={styles.addMealButtonText}>+ Add Meal</Text>
+            </TouchableOpacity>
           </View>
+        ) : (
+          <View>
+            {meals.map((meal) => (
+              <View key={meal.id} style={styles.mealCard}>
+                <View style={styles.mealIconContainer}>
+                  <Text style={styles.mealIcon}>
+                    {meal.mealType === "Breakfast"
+                      ? "🥣"
+                      : meal.mealType === "Lunch"
+                        ? "🥗"
+                        : meal.mealType === "Dinner"
+                          ? "🍽️"
+                          : "🍎"}
+                  </Text>
+                </View>
 
-          <Text style={styles.mealCalories}>350 kcal</Text>
-        </View>
+                <View style={styles.mealInfo}>
+                  <Text style={styles.mealName}>{meal.mealType}</Text>
 
-        <View style={styles.mealCard}>
-          <View style={styles.mealIconContainer}>
-            <Text style={styles.mealIcon}>🥗</Text>
+                  <Text style={styles.mealDetails}>{meal.foodName}</Text>
+                </View>
+
+                <Text style={styles.mealCalories}>
+                  {meal.calories || 0} kcal
+                </Text>
+              </View>
+            ))}
           </View>
-
-          <View style={styles.mealInfo}>
-            <Text style={styles.mealName}>Lunch</Text>
-            <Text style={styles.mealDetails}>
-              Rice • Chicken • Vegetables
-            </Text>
-          </View>
-
-          <Text style={styles.mealCalories}>520 kcal</Text>
-        </View>
+        )}
 
         {/* Progress Button */}
         <TouchableOpacity
@@ -156,9 +331,7 @@ export default function DashboardScreen({ navigation }) {
           onPress={() => navigation.navigate("Progress")}
         >
           <View>
-            <Text style={styles.progressButtonTitle}>
-              View Your Progress
-            </Text>
+            <Text style={styles.progressButtonTitle}>View Your Progress</Text>
             <Text style={styles.progressButtonSubtitle}>
               Check your nutrition journey
             </Text>
@@ -166,11 +339,10 @@ export default function DashboardScreen({ navigation }) {
 
           <Text style={styles.arrow}>›</Text>
         </TouchableOpacity>
-
       </ScrollView>
 
       {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
+      {/* <View style={styles.bottomNav}>
         <TouchableOpacity style={styles.navItem}>
           <Text style={styles.navIcon}>🏠</Text>
           <Text style={styles.activeNavText}>Home</Text>
@@ -199,12 +371,54 @@ export default function DashboardScreen({ navigation }) {
           <Text style={styles.navIcon}>👤</Text>
           <Text style={styles.navText}>Profile</Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  emptyText: {
+    textAlign: "center",
+    color: "#6B7280",
+    marginVertical: 20,
+  },
+
+  emptyMeal: {
+    alignItems: "center",
+    paddingVertical: 25,
+  },
+
+  emptyMealIcon: {
+    fontSize: 40,
+    marginBottom: 10,
+  },
+
+  emptyMealTitle: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#1F2937",
+    marginBottom: 5,
+  },
+
+  emptyMealText: {
+    fontSize: 13,
+    color: "#6B7280",
+    textAlign: "center",
+    marginBottom: 15,
+  },
+
+  addMealButton: {
+    backgroundColor: "#4CAF50",
+    paddingHorizontal: 20,
+    paddingVertical: 11,
+    borderRadius: 10,
+  },
+
+  addMealButtonText: {
+    color: "#FFFFFF",
+    fontWeight: "700",
+  },
+
   container: {
     flex: 1,
     backgroundColor: "#F7FBF5",

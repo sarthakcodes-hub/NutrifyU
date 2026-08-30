@@ -1,4 +1,5 @@
 import { signInWithEmailAndPassword } from "firebase/auth";
+import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../services/firebase";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -23,47 +24,74 @@ export default function LoginScreen({ navigation }) {
     if (!email.trim() || !password) {
       Alert.alert(
         "Missing Information",
-        "Please enter your email and password."
+        "Please enter your email and password.",
       );
       return;
     }
-  
+
     try {
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email.trim(),
-        password
+        password,
       );
-  
+
       console.log("Login successful:", userCredential.user.uid);
-  
+
       navigation.replace("Dashboard");
     } catch (error) {
       console.log("Login error:", error);
-  
+
       if (
         error.code === "auth/invalid-credential" ||
         error.code === "auth/wrong-password" ||
         error.code === "auth/user-not-found"
       ) {
+        Alert.alert("Login Failed", "Invalid email or password.");
+      } else if (error.code === "auth/invalid-email") {
+        Alert.alert("Invalid Email", "Please enter a valid email address.");
+      } else {
+        Alert.alert("Login Failed", error.message);
+      }
+    }
+  };
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      Alert.alert("Email Required", "Please enter your email address first.");
+      return;
+    }
+
+    try {
+      await sendPasswordResetEmail(auth, email.trim());
+
+      Alert.alert(
+        "Password Reset",
+        "A password reset link has been sent to your email address.",
+      );
+    } catch (error) {
+      console.log("Password reset error:", error);
+
+      if (error.code === "auth/user-not-found") {
         Alert.alert(
-          "Login Failed",
-          "Invalid email or password."
+          "Account Not Found",
+          "No account exists with this email address.",
         );
       } else if (error.code === "auth/invalid-email") {
+        Alert.alert("Invalid Email", "Please enter a valid email address.");
+      } else if (error.code === "auth/too-many-requests") {
         Alert.alert(
-          "Invalid Email",
-          "Please enter a valid email address."
+          "Try Again Later",
+          "Too many reset requests. Please try again later.",
         );
       } else {
         Alert.alert(
-          "Login Failed",
-          error.message
+          "Error",
+          "Unable to send password reset email. Please try again.",
         );
       }
     }
   };
-  
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
@@ -74,12 +102,12 @@ export default function LoginScreen({ navigation }) {
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
-          <TouchableOpacity
+          {/* <TouchableOpacity
             onPress={() => navigation.goBack()}
             style={styles.backButton}
           >
             <Text style={styles.backText}>‹ Back</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           <Text style={styles.logo}>NutrifyU</Text>
 
@@ -108,25 +136,21 @@ export default function LoginScreen({ navigation }) {
             onChangeText={setPassword}
           />
 
-          <TouchableOpacity style={styles.forgotButton}>
+          <TouchableOpacity
+            style={styles.forgotButton}
+            onPress={handleForgotPassword}
+          >
             <Text style={styles.forgotText}>Forgot Password?</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handleLogin}
-          >
+          <TouchableOpacity style={styles.button} onPress={handleLogin}>
             <Text style={styles.buttonText}>Login</Text>
           </TouchableOpacity>
 
           <View style={styles.registerRow}>
-            <Text style={styles.registerText}>
-              Don't have an account?
-            </Text>
+            <Text style={styles.registerText}>Don't have an account?</Text>
 
-            <TouchableOpacity
-              onPress={() => navigation.navigate("Register")}
-            >
+            <TouchableOpacity onPress={() => navigation.navigate("Register")}>
               <Text style={styles.registerLink}> Register</Text>
             </TouchableOpacity>
           </View>

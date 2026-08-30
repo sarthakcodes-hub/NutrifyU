@@ -17,6 +17,7 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 
 import { auth, db } from "../services/firebase";
 
+
 const green = "#39d98a";
 
 export default function ProfileScreen({ navigation }) {
@@ -24,6 +25,90 @@ export default function ProfileScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  const [goals, setGoals] = useState({
+    calories: 0,
+    water: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0,
+  });
+  
+  const [todayNutrition, setTodayNutrition] = useState({
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0,
+  });
+
+  const loadDashboardData = async () => {
+    try {
+      const user = auth.currentUser;
+  
+      if (!user) {
+        return;
+      }
+  
+      // =========================
+      // GET USER GOALS
+      // =========================
+  
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+  
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+  
+        setGoals({
+          calories: Number(data.dailyCalorieGoal) || 0,
+          water: Number(data.dailyWaterGoal) || 0,
+          protein: Number(data.dailyProteinGoal) || 0,
+          carbs: Number(data.dailyCarbsGoal) || 0,
+          fat: Number(data.dailyFatGoal) || 0,
+        });
+      }
+  
+      // =========================
+      // GET USER MEALS
+      // =========================
+  
+      const mealsRef = collection(db, "meals");
+  
+      const mealsQuery = query(
+        mealsRef,
+        where("uid", "==", user.uid)
+      );
+  
+      const mealsSnap = await getDocs(mealsQuery);
+  
+      let calories = 0;
+      let protein = 0;
+      let carbs = 0;
+      let fat = 0;
+  
+      mealsSnap.forEach((mealDoc) => {
+        const meal = mealDoc.data();
+  
+        calories += Number(meal.calories) || 0;
+        protein += Number(meal.protein) || 0;
+        carbs += Number(meal.carbs) || 0;
+        fat += Number(meal.fat) || 0;
+      });
+  
+      setTodayNutrition({
+        calories,
+        protein,
+        carbs,
+        fat,
+      });
+  
+    } catch (error) {
+      console.log(
+        "Dashboard data loading error:",
+        error
+      );
+    }
+  };
+  
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -253,11 +338,11 @@ export default function ProfileScreen({ navigation }) {
 
               {[
                 ["⌂ Dashboard", "Dashboard"],
-                ["🥗 My Nutrition", null],
-                ["📷 Food Scanner", null],
-                ["🍽 Meal Planner", null],
-                ["🎯 My Goals", null],
-                ["📊 Reports", null],
+                ["🥗 My Nutrition", "Nutrition"],
+                ["📷 Food Scanner", "FoodScanner"],
+                ["🍽 Meal Planner", "MealPlanner"],
+                ["🎯 My Goals", "Goals"],
+                ["📊 Reports", "Reports"],
                 ["👤 Profile", "Profile"],
               ].map(([label, route]) => (
                 <TouchableOpacity

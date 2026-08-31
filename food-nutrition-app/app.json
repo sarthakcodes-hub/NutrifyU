@@ -10,6 +10,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.nutrifyu.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -19,6 +20,11 @@
     },
     "web": {
       "favicon": "./assets/image.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "77012cbd-1f61-4369-b0e4-0b2bbdafc7b0"
+      }
     }
   }
 }

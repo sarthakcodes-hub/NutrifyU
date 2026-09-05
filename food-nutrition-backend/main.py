@@ -489,7 +489,9 @@ Rules:
 - weight_g is the estimated serving weight in grams.
 - ingredients must be an array of strings.
 - allergens must be an array of strings.
-- health_tips must be an array of strings.
+- health_tips must contain at most 3 short strings.
+- ingredients must contain at most 10 items.
+- allergens must contain at most 10 items.
 - Estimate nutrition based only on what can reasonably be inferred from the image.
 - If something cannot be determined with confidence, make a reasonable estimate.
 - Do not include markdown.
@@ -572,6 +574,7 @@ async def analyze_food(file: UploadFile = File(...)):
                 }
             ],
             temperature=0.2,
+            max_tokens=800,
             response_format={
                 "type": "json_object"
             }
